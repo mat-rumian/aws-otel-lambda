@@ -24,8 +24,10 @@ Resources:
       ReservedConcurrentExecutions: 1
       Environment:
         Variables:
+          OTEL_RESOURCE_ATTRIBUTES: service.name=YOUR_SERVICE_NAME
+          SUMOLOGIC_HTTP_TRACES_ENDPOINT_URL: SUMO_HTTP_TRACES_URL
           AWS_LAMBDA_EXEC_WRAPPER: /opt/python/adot-instrument
-      Tracing: Active
+      #Tracing: Active
       Layers:
         - !Ref AwsObservability
       Events:
