@@ -63,6 +63,14 @@ from opentelemetry.trace import SpanKind, get_tracer, get_tracer_provider
 logger = logging.getLogger(__name__)
 
 
+def _is_sampled(xray_trace_id: str) -> bool:
+    tmp_xray_trace_id = xray_trace_id.split(';')
+    if '0' in tmp_xray_trace_id[2]:
+        return False
+    else:
+        return True
+
+
 class AwsLambdaInstrumentor(BaseInstrumentor):
     def _instrument(self, **kwargs):
         self._tracer = get_tracer(__name__, __version__, kwargs.get("tracer_provider"))
@@ -101,18 +109,29 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
             DictGetter(), {"X-Amzn-Trace-Id": xray_trace_id}
         )
 
-        with self._tracer.start_as_current_span(
-            orig_handler, context=parent_context, kind=SpanKind.CONSUMER
-        ) as span:
-            # Refer: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/semantic_conventions/faas.md#example
-            span.set_attribute("faas.execution", ctx_aws_request_id)
-            span.set_attribute("faas.id", ctx_invoked_function_arn)
+        if not _is_sampled(xray_trace_id):
+            with self._tracer.start_as_current_span(orig_handler, kind=SpanKind.CONSUMER) as sampled_span:
+                sampled_span.set_attribute("faas.execution", ctx_aws_request_id)
+                sampled_span.set_attribute("faas.id", ctx_invoked_function_arn)
 
-            # TODO: fix in Collector because they belong resource attrubutes
-            span.set_attribute("faas.name", lambda_name)
-            span.set_attribute("faas.version", function_version)
+                # TODO: fix in Collector because they belong resource attrubutes
+                sampled_span.set_attribute("faas.name", lambda_name)
+                sampled_span.set_attribute("faas.version", function_version)
 
-            result = original_func(*args, **kwargs)
+                result = original_func(*args, **kwargs)
+        else:
+            with self._tracer.start_as_current_span(
+                    orig_handler, context=parent_context, kind=SpanKind.CONSUMER
+            ) as span:
+                # Refer: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/semantic_conventions/faas.md#example
+                span.set_attribute("faas.execution", ctx_aws_request_id)
+                span.set_attribute("faas.id", ctx_invoked_function_arn)
+
+                # TODO: fix in Collector because they belong resource attrubutes
+                span.set_attribute("faas.name", lambda_name)
+                span.set_attribute("faas.version", function_version)
+
+                result = original_func(*args, **kwargs)
 
         # force_flush before function quit in case of Lambda freeze.
         self._tracer_provider.force_flush()
