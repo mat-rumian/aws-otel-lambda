@@ -54,7 +54,6 @@ from wrapt import wrap_function_wrapper
 from opentelemetry.sdk.extension.aws.trace.propagation.aws_xray_format import (
     AwsXRayFormat,
 )
-from opentelemetry.trace.propagation.textmap import DictGetter
 from opentelemetry.instrumentation.aws_lambda.version import __version__
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
@@ -106,7 +105,7 @@ class AwsLambdaInstrumentor(BaseInstrumentor):
 
         propagator = AwsXRayFormat()
         parent_context = propagator.extract(
-            DictGetter(), {"X-Amzn-Trace-Id": xray_trace_id}
+            {"X-Amzn-Trace-Id": xray_trace_id}
         )
 
         if not _is_sampled(xray_trace_id):
