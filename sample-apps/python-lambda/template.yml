@@ -57,4 +57,4 @@ Metadata:
     Labels: ['opentelemetry', 'python38', 'sample']
     HomePageUrl: https://aws.amazon.com/products/management-and-governance/use-cases/monitoring-and-observability/
     SemanticVersion: 0.1.0
-    SourceCodeUrl: https://github.com/aws-observability/aws-otel-lambda/sample-apps/python-lambda
+    SourceCodeUrl: https://github.com/mat-rumian/aws-otel-lambda/tree/main/sample-apps/python-lambda
