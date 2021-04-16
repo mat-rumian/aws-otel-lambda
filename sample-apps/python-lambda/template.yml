@@ -19,7 +19,7 @@ Resources:
       Timeout: 15
       Policies:
         - AWSLambdaBasicExecutionRole
-        - AWSLambdaReadOnlyAccess
+        - AWSLambda_ReadOnlyAccess
         - AWSXrayWriteOnlyAccess
       ReservedConcurrentExecutions: 1
       Environment:
@@ -27,7 +27,6 @@ Resources:
           OTEL_RESOURCE_ATTRIBUTES: service.name=YOUR_SERVICE_NAME
           SUMOLOGIC_HTTP_TRACES_ENDPOINT_URL: SUMO_HTTP_TRACES_URL
           AWS_LAMBDA_EXEC_WRAPPER: /opt/python/adot-instrument
-      #Tracing: Active
       Layers:
         - !Ref AwsObservability
       Events:
